@@ -1,4 +1,4 @@
-use std::io::BufRead;
+use std::{collections::HashMap, io::BufRead};
 
 use itertools::Itertools;
 
@@ -9,6 +9,19 @@ pub fn what_is_the_total_distance_between_lists(input: &mut dyn BufRead) -> u32 
 
     return left.iter().zip(right)
         .map(|(l, r)| l.abs_diff(r))
+        .sum();
+}
+
+pub fn what_is_lists_similarity_score(input: &mut dyn BufRead) -> u32 {
+    let (left, right) = parse_input(read_input(input));
+    let right_counts: HashMap<u32, usize> = right.iter()
+        .into_group_map_by(|&n| n)
+        .into_iter()
+        .map(|(n, v)| (*n, v.len()))
+        .collect();
+
+    return left.iter()
+        .map(|n| n * right_counts.get(n).map(|x| *x as u32).unwrap_or(0))
         .sum();
 }
 
@@ -32,7 +45,7 @@ fn parse_input(input: Vec<String>) -> (Vec<u32>, Vec<u32>) {
 
 #[cfg(test)]
 mod tests {
-    use crate::day01::what_is_the_total_distance_between_lists;
+    use crate::day01::{what_is_the_total_distance_between_lists, what_is_lists_similarity_score};
     use std::{fs::File, io::BufReader};
 
     #[test]
@@ -45,5 +58,17 @@ mod tests {
     fn part1_input() {
         let mut f = BufReader::new(File::open("./src/day01/my.input").unwrap());
         assert_eq!(what_is_the_total_distance_between_lists(&mut f), 1579939);
+    }
+
+    #[test]
+    fn sample_part2_input() {
+        let mut f = BufReader::new(File::open("./src/day01/sample.input").unwrap());
+        assert_eq!(what_is_lists_similarity_score(&mut f), 31);
+    }
+
+    #[test]
+    fn part2_input() {
+        let mut f = BufReader::new(File::open("./src/day01/my.input").unwrap());
+        assert_eq!(what_is_lists_similarity_score(&mut f), 20351745);
     }
 }
