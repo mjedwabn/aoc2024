@@ -122,6 +122,6 @@ mod tests {
   #[test]
   fn my_part1_input() {
     let mut f = BufReader::new(File::open("./src/day06/my.input").unwrap());
-    assert_eq!(count_positions_visited_by_guard(&mut f), 41)
+    assert_eq!(count_positions_visited_by_guard(&mut f), 5444)
   }
 }
