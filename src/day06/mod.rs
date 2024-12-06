@@ -1,24 +1,48 @@
-use std::{collections::HashSet, io::BufRead};
+use std::{collections::HashMap, io::BufRead};
 
 use crate::read_input;
 
 pub fn count_positions_visited_by_guard(input: &mut dyn BufRead) -> usize {
-  let mut guard = parse_map(read_input(input));
+  let mut guard = Guard::new(parse_map(read_input(input)));
   while !guard.left_mapped_area() {
-    guard.make_move();
+    guard.make_move()
   }
-  guard.visited_positions.len()
+  guard.count_visited_positions()
 }
 
-fn parse_map(lines: Vec<String>) -> Guard {
+pub fn count_possible_loop_obstructions(input: &mut dyn BufRead) -> usize {
+  let source_map = parse_map(read_input(input));
+  let candidates = source_map.coords().iter()
+    .filter(|c| *source_map.get(c) == '.')
+    .map(|c| *c)
+    .collect::<Vec<Coords>>();
+  let mut count = 0;
+  for candidate in candidates {
+    //println!("candidate {:?}", candidate);
+    let mut candidate_map = source_map.clone();
+    candidate_map.set(&candidate, '#');
+    let mut guard = Guard::new(candidate_map);
+    while !guard.left_mapped_area() && !guard.entered_into_loop() {
+      guard.make_move()
+    }
+
+    if guard.entered_into_loop() {
+      count += 1
+    }
+  }
+  count
+}
+
+fn parse_map(lines: Vec<String>) -> CartesianGrid {
   let grid = lines
     .iter()
     .map(|line| line.chars().into_iter().collect())
     .collect::<Vec<Vec<char>>>();
 
-  Guard::new(grid)
+  CartesianGrid {grid}
 }
 
+#[derive(Clone)]
 struct CartesianGrid {
   grid: Vec<Vec<char>>
 }
@@ -27,7 +51,7 @@ struct Guard {
   grid: CartesianGrid,
   position: Coords,
   direction: Direction,
-  visited_positions: HashSet<Coords>
+  visited_positions: HashMap<Coords, HashMap<Direction, usize>>
 }
 
 type Coords = (usize, usize);
@@ -44,6 +68,10 @@ impl CartesianGrid {
     return self.grid.get(coord.1).unwrap().get(coord.0).unwrap();
   }
 
+  fn set(&mut self, coord: &Coords, value: char) {
+    self.grid.get_mut(coord.1).unwrap()[coord.0] = value
+  }
+
   fn find_coords(&self, value: char) -> Option<(usize, usize)> {
     self.coords().iter().find(|c| *self.get(c) == value).map(|c| *c)
   }
@@ -57,16 +85,14 @@ impl CartesianGrid {
 }
 
 impl Guard {
-  fn new(g: Vec<Vec<char>>) -> Guard {
-    let grid = CartesianGrid {
-      grid: g
-    };
+  fn new(grid: CartesianGrid) -> Guard {
     let starting_position = grid.find_coords('^').unwrap();
+    let starting_direction = (0, -1);
     Guard {
       grid,
       position: starting_position,
-      direction: (0, -1),
-      visited_positions: HashSet::from([starting_position])
+      direction: starting_direction,
+      visited_positions: HashMap::from([(starting_position, HashMap::from([(starting_direction, 1)]))])
     }
   }
 
@@ -96,7 +122,19 @@ impl Guard {
 
   fn move_forward(&mut self) {
     self.position = self.get_move_projection();
-    self.visited_positions.insert(self.position);
+
+    self.mark_position_visited()
+  }
+
+  fn mark_position_visited(&mut self) {
+    if !self.visited_positions.contains_key(&self.position) {
+      self.visited_positions.insert(self.position, HashMap::new());
+    }
+    if !self.visited_positions.get(&self.position).unwrap().contains_key(&self.direction) {
+      self.visited_positions.get_mut(&self.position).unwrap().insert(self.direction, 0);
+    }
+    let count = *self.visited_positions.get(&self.position).unwrap().get(&self.direction).unwrap();
+    self.visited_positions.get_mut(&self.position).unwrap().insert(self.direction, count + 1);
   }
 
   fn turn_right(&mut self) {
@@ -105,13 +143,23 @@ impl Guard {
       self.direction.0
     )
   }
+
+  fn entered_into_loop(&self) -> bool {
+    *self.visited_positions.get(&self.position)
+      .and_then(|x| x.get(&self.direction))
+      .unwrap_or(&0) >= 2
+  }
+
+  fn count_visited_positions(&self) -> usize {
+    self.visited_positions.keys().len()
+  }
 }
 
 #[cfg(test)]
 mod tests {
   use std::{fs::File, io::BufReader};
 
-  use crate::day06::count_positions_visited_by_guard;
+  use crate::day06::{count_positions_visited_by_guard, count_possible_loop_obstructions};
 
   #[test]
   fn sample_part1_input() {
@@ -123,5 +171,17 @@ mod tests {
   fn my_part1_input() {
     let mut f = BufReader::new(File::open("./src/day06/my.input").unwrap());
     assert_eq!(count_positions_visited_by_guard(&mut f), 5444)
+  }
+
+  #[test]
+  fn sample_part2_input() {
+    let mut f = BufReader::new(File::open("./src/day06/sample.input").unwrap());
+    assert_eq!(count_possible_loop_obstructions(&mut f), 6)
+  }
+
+  #[test]
+  fn my_part2_input() {
+    let mut f = BufReader::new(File::open("./src/day06/my.input").unwrap());
+    assert_eq!(count_possible_loop_obstructions(&mut f), 1946)
   }
 }
