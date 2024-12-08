@@ -2,13 +2,13 @@ use std::io::BufRead;
 
 use itertools::Itertools;
 
-use crate::read_input;
+use crate::{read_input, CartesianGrid};
 
 pub fn count_xmas_word(input: &mut dyn BufRead) -> usize {
   let word = "XMAS".chars().collect_vec();
 
   let board = parse_board(read_input(input));
-  board
+  board.grid
     .coords()
     .iter()
     .map(|c| board.count_word(c, &word))
@@ -19,7 +19,7 @@ pub fn count_x_mas(input: &mut dyn BufRead) -> usize {
   let word = "MAS".chars().collect_vec();
 
   let board = parse_board(read_input(input));
-  board
+  board.grid
     .coords()
     .iter()
     .map(|c| board.find_word_on_diagonals(c, &word))
@@ -36,31 +36,23 @@ pub fn count_x_mas(input: &mut dyn BufRead) -> usize {
 }
 
 fn parse_board(input: Vec<String>) -> Board {
-  return Board {
-    grid: input
-      .iter()
-      .map(|line| line.chars().into_iter().collect())
-      .collect(),
-  };
+  Board {
+    grid: CartesianGrid {
+      grid: input
+        .iter()
+        .map(|line| line.chars().into_iter().collect())
+        .collect(),
+    }
+  }
 }
 
 struct Board {
-  grid: Vec<Vec<char>>,
+  grid: CartesianGrid<char>
 }
 
 impl Board {
-  fn coords(&self) -> Vec<(usize, usize)> {
-    return (0..self.grid.len())
-      .flat_map(|y| (0..self.grid.get(y).unwrap().len()).map(move |x| (x, y)))
-      .collect();
-  }
-
-  fn get(&self, coord: &(usize, usize)) -> &char {
-    return self.grid.get(coord.1).unwrap().get(coord.0).unwrap();
-  }
-
   fn count_word(&self, start: &(usize, usize), word: &Vec<char>) -> usize {
-    if *self.get(start) != *word.get(0).unwrap() {
+    if *self.grid.get(start) != *word.get(0).unwrap() {
       return 0;
     } else {
       self
@@ -76,7 +68,7 @@ impl Board {
     start: &(usize, usize),
     word: &Vec<char>,
   ) -> Vec<Vec<(usize, usize)>> {
-    if *self.get(start) != *word.get(0).unwrap() {
+    if *self.grid.get(start) != *word.get(0).unwrap() {
       return vec![];
     } else {
       self
@@ -98,7 +90,7 @@ impl Board {
       coords
         .iter()
         .enumerate()
-        .all(|(i, c)| self.get(c) == word.get(i).unwrap())
+        .all(|(i, c)| self.grid.get(c) == word.get(i).unwrap())
     } else {
       false
     }
@@ -110,7 +102,7 @@ impl Board {
     direction: &(i8, i8),
     distance: usize,
   ) -> Option<Vec<(usize, usize)>> {
-    if self.in_grid(&(
+    if self.grid.in_grid(&(
       start.0 as isize + direction.0 as isize * (distance - 1) as isize,
       start.1 as isize + direction.1 as isize * (distance - 1) as isize,
     )) {
@@ -153,13 +145,6 @@ impl Board {
 
   fn get_diagonal_versors(&self) -> Vec<(i8, i8)> {
     return vec![(1, 1), (1, -1), (-1, -1), (-1, 1)];
-  }
-
-  fn in_grid(&self, coord: &(isize, isize)) -> bool {
-    return coord.1 >= 0
-      && coord.1 < self.grid.len() as isize
-      && coord.0 >= 0
-      && coord.0 < self.grid.get(coord.1 as usize).unwrap().len() as isize;
   }
 }
 

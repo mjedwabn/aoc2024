@@ -1,6 +1,6 @@
 use std::{collections::HashMap, io::BufRead};
 
-use crate::read_input;
+use crate::{read_input, CartesianGrid, Coords};
 
 pub fn count_positions_visited_by_guard(input: &mut dyn BufRead) -> usize {
   let mut guard = Guard::new(parse_map(read_input(input)));
@@ -33,7 +33,7 @@ pub fn count_possible_loop_obstructions(input: &mut dyn BufRead) -> usize {
   count
 }
 
-fn parse_map(lines: Vec<String>) -> CartesianGrid {
+fn parse_map(lines: Vec<String>) -> CartesianGrid<char> {
   let grid = lines
     .iter()
     .map(|line| line.chars().into_iter().collect())
@@ -42,51 +42,18 @@ fn parse_map(lines: Vec<String>) -> CartesianGrid {
   CartesianGrid {grid}
 }
 
-#[derive(Clone)]
-struct CartesianGrid {
-  grid: Vec<Vec<char>>
-}
-
 struct Guard {
-  grid: CartesianGrid,
+  grid: CartesianGrid<char>,
   position: Coords,
   direction: Direction,
   visited_positions: HashMap<Coords, HashMap<Direction, usize>>
 }
 
-type Coords = (usize, usize);
 type Direction = (isize, isize);
 
-impl CartesianGrid {
-  fn coords(&self) -> Vec<Coords> {
-    return (0..self.grid.len())
-      .flat_map(|y| (0..self.grid.get(y).unwrap().len()).map(move |x| (x, y)))
-      .collect();
-  }
-
-  fn get(&self, coord: &Coords) -> &char {
-    return self.grid.get(coord.1).unwrap().get(coord.0).unwrap();
-  }
-
-  fn set(&mut self, coord: &Coords, value: char) {
-    self.grid.get_mut(coord.1).unwrap()[coord.0] = value
-  }
-
-  fn find_coords(&self, value: char) -> Option<(usize, usize)> {
-    self.coords().iter().find(|c| *self.get(c) == value).map(|c| *c)
-  }
-
-  fn is_boundary(&self, coord: &Coords) -> bool {
-    return coord.1 == 0
-      || coord.1 == self.grid.len() - 1
-      || coord.0 == 0
-      || coord.0 == self.grid.get(coord.1 as usize).unwrap().len() - 1;
-  }
-}
-
 impl Guard {
-  fn new(grid: CartesianGrid) -> Guard {
-    let starting_position = grid.find_coords('^').unwrap();
+  fn new(grid: CartesianGrid<char>) -> Guard {
+    let starting_position = grid.find_one_coords('^').unwrap();
     let starting_direction = (0, -1);
     Guard {
       grid,

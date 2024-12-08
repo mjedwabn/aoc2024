@@ -2,7 +2,7 @@ use std::io::BufRead;
 
 use itertools::Itertools;
 
-use crate::read_input;
+use crate::{read_input, CartesianGrid, Coords};
 
 pub fn count_unique_antinode_locations(input: &mut dyn BufRead) -> usize {
   let map = parse_map(read_input(input));
@@ -14,7 +14,7 @@ pub fn count_unique_harmonic_antinode_locations(input: &mut dyn BufRead) -> usiz
   map.count_unique_antinode_locations(|| (0..))
 }
 
-fn parse_map(lines: Vec<String>) -> CartesianGrid {
+fn parse_map(lines: Vec<String>) -> CartesianGrid<char> {
   let grid = lines
     .iter()
     .map(|line| line.chars().into_iter().collect())
@@ -23,72 +23,20 @@ fn parse_map(lines: Vec<String>) -> CartesianGrid {
   CartesianGrid { grid }
 }
 
-struct CartesianGrid {
-  grid: Vec<Vec<char>>,
-}
-
-impl CartesianGrid {
-  fn coords(&self) -> Vec<Coords> {
-    (0..self.grid.len())
-      .flat_map(|y| (0..self.grid.get(y).unwrap().len()).map(move |x| (x, y)))
-      .collect()
-  }
-
-  fn get(&self, coord: &Coords) -> &char {
-    self.grid.get(coord.1).unwrap().get(coord.0).unwrap()
-  }
-
-  fn in_grid(&self, coord: &(isize, isize)) -> bool {
-    coord.1 >= 0
-      && coord.1 < self.grid.len() as isize
-      && coord.0 >= 0
-      && coord.0 < self.grid.get(coord.1 as usize).unwrap().len() as isize
-  }
-
-  fn set(&mut self, coord: &Coords, value: char) {
-    self.grid.get_mut(coord.1).unwrap()[coord.0] = value
-  }
-
-  fn print(&self) {
-    for level in self.grid.iter() {
-      for c in level {
-          print!("{} ", c);
-      }
-      println!();
-    }
-  }
-}
-
-type Coords = (usize, usize);
-
 trait Map {
   fn count_unique_antinode_locations<R>(&self, harmonics: fn() -> R) -> usize where R: IntoIterator<Item = u32>;
   fn detect_frequency_antinodes<R>(&self, antennas: Vec<&Coords>, harmonics: fn() -> R) -> Vec<Coords> where R: IntoIterator<Item = u32>;
   fn detect_antinodes<R>(&self, antenna1: &Coords, antenna2: &Coords, harmonics: fn() -> R) -> Vec<Coords> where R: IntoIterator<Item = u32>;
 }
 
-impl Map for CartesianGrid {
+impl Map for CartesianGrid<char> {
   fn count_unique_antinode_locations<R>(&self, harmonics: fn() -> R) -> usize where R: IntoIterator<Item = u32> {
-    let antinodes = self.coords().iter().filter(|c| *self.get(c) != '.')
+    self.coords().iter().filter(|c| *self.get(c) != '.')
       .into_group_map_by(|c| self.get(c))
       .into_iter()
       .flat_map(|(_, antennas)| self.detect_frequency_antinodes(antennas, harmonics))
-      .unique().collect::<Vec<Coords>>();
-
-    // println!("{:?}", antinodes);
-    // let mut g = CartesianGrid { grid: self.grid.clone() };
-
-    // println!("before");
-    // g.print();
-
-    // for c in &antinodes {
-    //   g.set(&c, '#');
-    // }
-
-    // println!("after");
-    // g.print();
-
-    antinodes.len()
+      .unique().collect::<Vec<Coords>>()
+      .len()
   }
 
   fn detect_frequency_antinodes<R>(&self, antennas: Vec<&Coords>, harmonics: fn() -> R) -> Vec<Coords> where R: IntoIterator<Item = u32> {
