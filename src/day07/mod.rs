@@ -2,10 +2,10 @@ use std::io::BufRead;
 
 use crate::read_input;
 
-pub fn total_calibration_result(input: &mut dyn BufRead) -> u64 {
+pub fn total_calibration_result(input: &mut dyn BufRead, possible_operators: &[char]) -> u64 {
   parse_equations(read_input(input))
     .iter()
-    .filter(|e| e.can_be_made_true())
+    .filter(|e| e.can_be_made_true(possible_operators))
     .map(|e| e.test_value)
     .sum()
 }
@@ -29,38 +29,57 @@ struct Equation {
 }
 
 impl Equation {
-    fn can_be_made_true(&self) -> bool {
-      self.operators_combinations()
+    fn can_be_made_true(&self, possible_operators: &[char]) -> bool {
+      self.operator_combinations(possible_operators).iter()
+        .map(|s| s.chars().collect())
         .any(|operators| self.eval(operators) == self.test_value)
     }
 
-    fn operators_combinations(&self) -> impl Iterator<Item = Vec<char>> {
-      (0..(2 as u32).pow((self.numbers.len() - 1) as u32))
-        .map(|i| format!("0{:0n$b}", i, n=self.numbers.len() - 1))
-        .map(|binary| binary.chars().collect::<Vec<char>>())
+    fn operator_combinations(&self, ops: &[char]) -> Vec<String> {
+      let n = self.numbers.len() - 1;
+      (0..n).fold(vec![String::from("+")], |acc, _| {
+          acc.into_iter()
+              .flat_map(|head| ops.iter().map(move |&o| format!("{head}{o}")))
+              .collect()
+      })
     }
 
     fn eval(&self, operators: Vec<char>) -> u64 {
       self.numbers.iter().zip(operators)
-        .fold(0, |acc, e| if e.1 == '0' {acc + e.0} else {acc * e.0})
+        .fold(0, |acc, e| if e.1 == '+' {acc + e.0} else if e.1 == '|' { self.concat(acc, *e.0) } else {acc * e.0})
+    }
+
+    fn concat(&self, a: u64, b: u64) -> u64 {
+      format!("{a}{b}").parse::<u64>().unwrap()
     }
 }
 
 #[cfg(test)]
 mod tests {
   use std::{fs::File, io::BufReader};
-
-use crate::day07::total_calibration_result;
+  use crate::day07::total_calibration_result;
 
   #[test]
   fn sample_part1_input() {
     let mut f = BufReader::new(File::open("./src/day07/sample.input").unwrap());
-    assert_eq!(total_calibration_result(&mut f), 3749)
+    assert_eq!(total_calibration_result(&mut f, &vec!['+', '*']), 3749)
   }
 
   #[test]
   fn my_part1_input() {
     let mut f = BufReader::new(File::open("./src/day07/my.input").unwrap());
-    assert_eq!(total_calibration_result(&mut f), 12839601725877)
+    assert_eq!(total_calibration_result(&mut f, &vec!['+', '*']), 12839601725877)
+  }
+
+  #[test]
+  fn sample_part2_input() {
+    let mut f = BufReader::new(File::open("./src/day07/sample.input").unwrap());
+    assert_eq!(total_calibration_result(&mut f, &vec!['+', '*', '|']), 11387)
+  }
+
+  #[test]
+  fn my_part2_input() {
+    let mut f = BufReader::new(File::open("./src/day07/my.input").unwrap());
+    assert_eq!(total_calibration_result(&mut f, &vec!['+', '*', '|']), 149956401519484)
   }
 }
