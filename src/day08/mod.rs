@@ -6,12 +6,12 @@ use crate::read_input;
 
 pub fn count_unique_antinode_locations(input: &mut dyn BufRead) -> usize {
   let map = parse_map(read_input(input));
-  map.count_unique_antinode_locations()
+  map.count_unique_antinode_locations(|| (1..=1))
 }
 
 pub fn count_unique_harmonic_antinode_locations(input: &mut dyn BufRead) -> usize {
   let map = parse_map(read_input(input));
-  map.count_unique_harmonic_antinode_locations()
+  map.count_unique_antinode_locations(|| (0..))
 }
 
 fn parse_map(lines: Vec<String>) -> CartesianGrid {
@@ -62,43 +62,17 @@ impl CartesianGrid {
 type Coords = (usize, usize);
 
 trait Map {
-  fn count_unique_antinode_locations(&self) -> usize;
-  fn count_unique_harmonic_antinode_locations(&self) -> usize;
-  fn detect_frequency_antinodes(&self, antennas: Vec<&Coords>) -> Vec<Coords>;
-  fn detect_harmonic_frequency_antinodes(&self, antennas: Vec<&Coords>) -> Vec<Coords>;
-  fn detect_antinodes(&self, antenna1: &Coords, antenna2: &Coords) -> Vec<Coords>;
-  fn detect_harmonic_antinodes(&self, antenna1: &Coords, antenna2: &Coords) -> Vec<Coords>;
+  fn count_unique_antinode_locations<R>(&self, harmonics: fn() -> R) -> usize where R: IntoIterator<Item = u32>;
+  fn detect_frequency_antinodes<R>(&self, antennas: Vec<&Coords>, harmonics: fn() -> R) -> Vec<Coords> where R: IntoIterator<Item = u32>;
+  fn detect_antinodes<R>(&self, antenna1: &Coords, antenna2: &Coords, harmonics: fn() -> R) -> Vec<Coords> where R: IntoIterator<Item = u32>;
 }
 
 impl Map for CartesianGrid {
-  fn count_unique_antinode_locations(&self) -> usize {
-    let antinodes = self.coords().iter().filter(|c| *self.get(c) != '.')
-    .into_group_map_by(|c| self.get(c))
-    .into_iter()
-    .flat_map(|(_, antennas)| self.detect_frequency_antinodes(antennas))
-    .unique().collect::<Vec<Coords>>();
-
-    // println!("{:?}", antinodes);
-    // let mut g = CartesianGrid { grid: self.grid.clone() };
-
-    // println!("before");
-    // g.print();
-
-    // for c in &antinodes {
-    //   g.set(&c, '#');
-    // }
-
-    // println!("after");
-    // g.print();
-
-    antinodes.len()
-  }
-
-  fn count_unique_harmonic_antinode_locations(&self) -> usize {
+  fn count_unique_antinode_locations<R>(&self, harmonics: fn() -> R) -> usize where R: IntoIterator<Item = u32> {
     let antinodes = self.coords().iter().filter(|c| *self.get(c) != '.')
       .into_group_map_by(|c| self.get(c))
       .into_iter()
-      .flat_map(|(_, antennas)| self.detect_harmonic_frequency_antinodes(antennas))
+      .flat_map(|(_, antennas)| self.detect_frequency_antinodes(antennas, harmonics))
       .unique().collect::<Vec<Coords>>();
 
     // println!("{:?}", antinodes);
@@ -117,46 +91,27 @@ impl Map for CartesianGrid {
     antinodes.len()
   }
 
-  fn detect_frequency_antinodes(&self, antennas: Vec<&Coords>) -> Vec<Coords> {
+  fn detect_frequency_antinodes<R>(&self, antennas: Vec<&Coords>, harmonics: fn() -> R) -> Vec<Coords> where R: IntoIterator<Item = u32> {
     antennas.iter().combinations(2)
       .map(|combination| (combination[0], combination[1]))
-      .flat_map(|(&antenna1, &antenna2)| self.detect_antinodes(antenna1, antenna2))
+      .flat_map(|(&antenna1, &antenna2)| self.detect_antinodes(antenna1, antenna2, harmonics))
       .collect()
   }
 
-  fn detect_harmonic_frequency_antinodes(&self, antennas: Vec<&Coords>) -> Vec<Coords> {
-    antennas.iter().combinations(2)
-      .map(|combination| (combination[0], combination[1]))
-      .flat_map(|(&antenna1, &antenna2)| self.detect_harmonic_antinodes(antenna1, antenna2))
-      .collect()
-  }
-
-  fn detect_antinodes(&self, antenna1: &Coords, antenna2: &Coords) -> Vec<Coords> {
+  fn detect_antinodes<R>(&self, antenna1: &Coords, antenna2: &Coords, harmonics: fn() -> R) -> Vec<Coords> where R: IntoIterator<Item = u32> {
     let dx = antenna1.0 as isize - antenna2.0 as isize;
     let dy = antenna1.1 as isize - antenna2.1 as isize;
 
-    let theoretical_antinodes = vec![
-      (antenna1.0 as isize + dx, antenna1.1 as isize + dy),
-      (antenna2.0 as isize - dx, antenna2.1 as isize - dy)
-    ];
-
-    theoretical_antinodes.iter()
-      .filter(|c| self.in_grid(*c))
-      .map(|c| (c.0 as usize, c.1 as usize))
-      .collect_vec()
-  }
-
-  fn detect_harmonic_antinodes(&self, antenna1: &Coords, antenna2: &Coords) -> Vec<Coords> {
-    let dx = antenna1.0 as isize - antenna2.0 as isize;
-    let dy = antenna1.1 as isize - antenna2.1 as isize;
-
-    let a1 = (0..100).map(|i| (antenna1.0 as isize + dx * i, antenna1.1 as isize + dy * i))
+    let antenna1_antinodes = harmonics().into_iter()
+      .map(|i| i as isize)
+      .map(|i| (antenna1.0 as isize + dx * i, antenna1.1 as isize + dy * i))
       .take_while(|c| self.in_grid(c));
-    let a2 = (0..100).map(|i| (antenna2.0 as isize - dx * i, antenna2.1 as isize - dy * i))
+    let antenna2_antinodes = harmonics().into_iter()
+      .map(|i| i as isize)
+      .map(|i| (antenna2.0 as isize - dx * i, antenna2.1 as isize - dy * i))
       .take_while(|c| self.in_grid(c));
 
-    a1.chain(a2)
-      .filter(|c| self.in_grid(c))
+    antenna1_antinodes.chain(antenna2_antinodes)
       .map(|c| (c.0 as usize, c.1 as usize))
       .collect_vec()
   }
