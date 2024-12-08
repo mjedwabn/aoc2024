@@ -1,4 +1,4 @@
-use std::io::BufRead;
+use std::{fs::File, io::{BufRead, BufReader}};
 
 pub mod day01;
 pub mod day02;
@@ -10,10 +10,14 @@ pub mod day07;
 pub mod day08;
 
 pub fn read_input(input: &mut dyn BufRead) -> Vec<String> {
-  return input
+  input
     .lines()
     .map(|line| line.unwrap())
-    .collect::<Vec<String>>();
+    .collect::<Vec<String>>()
+}
+
+pub fn read(file_name: &str) -> BufReader<File> {
+  BufReader::new(File::open(file_name).unwrap())
 }
 
 #[derive(Clone)]
@@ -42,10 +46,10 @@ impl<T: std::fmt::Display + std::cmp::PartialEq> CartesianGrid<T> {
   }
 
   fn is_boundary(&self, coord: &Coords) -> bool {
-    return coord.1 == 0
+    coord.1 == 0
       || coord.1 == self.grid.len() - 1
       || coord.0 == 0
-      || coord.0 == self.grid.get(coord.1 as usize).unwrap().len() - 1;
+      || coord.0 == self.grid.get(coord.1 as usize).unwrap().len() - 1
   }
 
   fn find_one_coords(&self, value: T) -> Option<Coords> {

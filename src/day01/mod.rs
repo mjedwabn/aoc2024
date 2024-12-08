@@ -45,30 +45,25 @@ fn parse_input(input: Vec<String>) -> (Vec<u32>, Vec<u32>) {
 
 #[cfg(test)]
 mod tests {
-    use crate::day01::{what_is_the_total_distance_between_lists, what_is_lists_similarity_score};
-    use std::{fs::File, io::BufReader};
+    use crate::{day01::{what_is_lists_similarity_score, what_is_the_total_distance_between_lists}, read};
 
     #[test]
     fn sample_part1_input() {
-        let mut f = BufReader::new(File::open("./src/day01/sample.input").unwrap());
-        assert_eq!(what_is_the_total_distance_between_lists(&mut f), 11);
+        assert_eq!(what_is_the_total_distance_between_lists(&mut read("./src/day01/sample.input")), 11);
     }
 
     #[test]
     fn part1_input() {
-        let mut f = BufReader::new(File::open("./src/day01/my.input").unwrap());
-        assert_eq!(what_is_the_total_distance_between_lists(&mut f), 1579939);
+        assert_eq!(what_is_the_total_distance_between_lists(&mut read("./src/day01/my.input")), 1579939);
     }
 
     #[test]
     fn sample_part2_input() {
-        let mut f = BufReader::new(File::open("./src/day01/sample.input").unwrap());
-        assert_eq!(what_is_lists_similarity_score(&mut f), 31);
+        assert_eq!(what_is_lists_similarity_score(&mut read("./src/day01/sample.input")), 31);
     }
 
     #[test]
     fn part2_input() {
-        let mut f = BufReader::new(File::open("./src/day01/my.input").unwrap());
-        assert_eq!(what_is_lists_similarity_score(&mut f), 20351745);
+        assert_eq!(what_is_lists_similarity_score(&mut read("./src/day01/my.input")), 20351745);
     }
 }

@@ -56,30 +56,25 @@ impl Equation {
 
 #[cfg(test)]
 mod tests {
-  use std::{fs::File, io::BufReader};
-  use crate::day07::total_calibration_result;
+  use crate::{day07::total_calibration_result, read};
 
   #[test]
   fn sample_part1_input() {
-    let mut f = BufReader::new(File::open("./src/day07/sample.input").unwrap());
-    assert_eq!(total_calibration_result(&mut f, &vec!['+', '*']), 3749)
+    assert_eq!(total_calibration_result(&mut read("./src/day07/sample.input"), &vec!['+', '*']), 3749)
   }
 
   #[test]
   fn my_part1_input() {
-    let mut f = BufReader::new(File::open("./src/day07/my.input").unwrap());
-    assert_eq!(total_calibration_result(&mut f, &vec!['+', '*']), 12839601725877)
+    assert_eq!(total_calibration_result(&mut read("./src/day07/my.input"), &vec!['+', '*']), 12839601725877)
   }
 
   #[test]
   fn sample_part2_input() {
-    let mut f = BufReader::new(File::open("./src/day07/sample.input").unwrap());
-    assert_eq!(total_calibration_result(&mut f, &vec!['+', '*', '|']), 11387)
+    assert_eq!(total_calibration_result(&mut read("./src/day07/sample.input"), &vec!['+', '*', '|']), 11387)
   }
 
   #[test]
   fn my_part2_input() {
-    let mut f = BufReader::new(File::open("./src/day07/my.input").unwrap());
-    assert_eq!(total_calibration_result(&mut f, &vec!['+', '*', '|']), 149956401519484)
+    assert_eq!(total_calibration_result(&mut read("./src/day07/my.input"), &vec!['+', '*', '|']), 149956401519484)
   }
 }

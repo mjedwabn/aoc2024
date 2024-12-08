@@ -124,31 +124,25 @@ impl Guard {
 
 #[cfg(test)]
 mod tests {
-  use std::{fs::File, io::BufReader};
-
-  use crate::day06::{count_positions_visited_by_guard, count_possible_loop_obstructions};
+  use crate::{day06::{count_positions_visited_by_guard, count_possible_loop_obstructions}, read};
 
   #[test]
   fn sample_part1_input() {
-    let mut f = BufReader::new(File::open("./src/day06/sample.input").unwrap());
-    assert_eq!(count_positions_visited_by_guard(&mut f), 41)
+    assert_eq!(count_positions_visited_by_guard(&mut read("./src/day06/sample.input")), 41)
   }
 
   #[test]
   fn my_part1_input() {
-    let mut f = BufReader::new(File::open("./src/day06/my.input").unwrap());
-    assert_eq!(count_positions_visited_by_guard(&mut f), 5444)
+    assert_eq!(count_positions_visited_by_guard(&mut read("./src/day06/my.input")), 5444)
   }
 
   #[test]
   fn sample_part2_input() {
-    let mut f = BufReader::new(File::open("./src/day06/sample.input").unwrap());
-    assert_eq!(count_possible_loop_obstructions(&mut f), 6)
+    assert_eq!(count_possible_loop_obstructions(&mut read("./src/day06/sample.input")), 6)
   }
 
   #[test]
   fn my_part2_input() {
-    let mut f = BufReader::new(File::open("./src/day06/my.input").unwrap());
-    assert_eq!(count_possible_loop_obstructions(&mut f), 1946)
+    assert_eq!(count_possible_loop_obstructions(&mut read("./src/day06/my.input")), 1946)
   }
 }

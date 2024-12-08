@@ -67,36 +67,30 @@ impl Map for CartesianGrid<char> {
 
 #[cfg(test)]
 mod tests {
-  use std::{fs::File, io::BufReader};
-  use crate::day08::{count_unique_antinode_locations, count_unique_harmonic_antinode_locations};
+  use crate::{day08::{count_unique_antinode_locations, count_unique_harmonic_antinode_locations}, read};
 
   #[test]
   fn sample_part1_input() {
-    let mut f = BufReader::new(File::open("./src/day08/sample.input").unwrap());
-    assert_eq!(count_unique_antinode_locations(&mut f), 14)
+    assert_eq!(count_unique_antinode_locations(&mut read("./src/day08/sample.input")), 14)
   }
 
   #[test]
   fn my_part1_input() {
-    let mut f = BufReader::new(File::open("./src/day08/my.input").unwrap());
-    assert_eq!(count_unique_antinode_locations(&mut f), 276)
+    assert_eq!(count_unique_antinode_locations(&mut read("./src/day08/my.input")), 276)
   }
 
   #[test]
   fn simple_sample_part2_input() {
-    let mut f = BufReader::new(File::open("./src/day08/simple_sample.input").unwrap());
-    assert_eq!(count_unique_harmonic_antinode_locations(&mut f), 9)
+    assert_eq!(count_unique_harmonic_antinode_locations(&mut read("./src/day08/simple_sample.input")), 9)
   }
 
   #[test]
   fn sample_part2_input() {
-    let mut f = BufReader::new(File::open("./src/day08/sample.input").unwrap());
-    assert_eq!(count_unique_harmonic_antinode_locations(&mut f), 34)
+    assert_eq!(count_unique_harmonic_antinode_locations(&mut read("./src/day08/sample.input")), 34)
   }
 
   #[test]
   fn my_part2_input() {
-    let mut f = BufReader::new(File::open("./src/day08/my.input").unwrap());
-    assert_eq!(count_unique_harmonic_antinode_locations(&mut f), 991)
+    assert_eq!(count_unique_harmonic_antinode_locations(&mut read("./src/day08/my.input")), 991)
   }
 }

@@ -48,19 +48,16 @@ fn extract_enabled_muls(code: String) -> Vec<(u32, u32)> {
 
 #[cfg(test)]
 mod tests {
-  use crate::day03::{sum_enabled_multiplications, sum_multiplications};
-  use std::{fs::File, io::BufReader};
+  use crate::{day03::{sum_enabled_multiplications, sum_multiplications}, read};
 
   #[test]
   fn sample_part1_input() {
-    let mut f = BufReader::new(File::open("./src/day03/sample.input").unwrap());
-    assert_eq!(sum_multiplications(&mut f), 161)
+    assert_eq!(sum_multiplications(&mut read("./src/day03/sample.input")), 161)
   }
 
   #[test]
   fn my_part1_input() {
-    let mut f = BufReader::new(File::open("./src/day03/my.input").unwrap());
-    assert_eq!(sum_multiplications(&mut f), 174960292)
+    assert_eq!(sum_multiplications(&mut read("./src/day03/my.input")), 174960292)
   }
 
   #[test]
@@ -70,7 +67,6 @@ mod tests {
 
   #[test]
   fn my_part2_input() {
-    let mut f = BufReader::new(File::open("./src/day03/my.input").unwrap());
-    assert_eq!(sum_enabled_multiplications(&mut f), 56275602)
+    assert_eq!(sum_enabled_multiplications(&mut read("./src/day03/my.input")), 56275602)
   }
 }

@@ -150,31 +150,25 @@ impl Board {
 
 #[cfg(test)]
 mod tests {
-  use std::{fs::File, io::BufReader};
-
-  use crate::day04::{count_x_mas, count_xmas_word};
+  use crate::{day04::{count_x_mas, count_xmas_word}, read};
 
   #[test]
   fn sample_part1_input() {
-    let mut f = BufReader::new(File::open("./src/day04/sample.input").unwrap());
-    assert_eq!(count_xmas_word(&mut f), 18);
+    assert_eq!(count_xmas_word(&mut read("./src/day04/sample.input")), 18);
   }
 
   #[test]
   fn my_part1_input() {
-    let mut f = BufReader::new(File::open("./src/day04/my.input").unwrap());
-    assert_eq!(count_xmas_word(&mut f), 2406);
+    assert_eq!(count_xmas_word(&mut read("./src/day04/my.input")), 2406);
   }
 
   #[test]
   fn sample_part2_input() {
-    let mut f = BufReader::new(File::open("./src/day04/sample.input").unwrap());
-    assert_eq!(count_x_mas(&mut f), 9);
+    assert_eq!(count_x_mas(&mut read("./src/day04/sample.input")), 9);
   }
 
   #[test]
   fn my_part2_input() {
-    let mut f = BufReader::new(File::open("./src/day04/my.input").unwrap());
-    assert_eq!(count_x_mas(&mut f), 1807);
+    assert_eq!(count_x_mas(&mut read("./src/day04/my.input")), 1807);
   }
 }
