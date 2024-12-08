@@ -3,7 +3,7 @@ use std::{collections::HashMap, io::BufRead};
 use crate::{read_input, CartesianGrid, Coords};
 
 pub fn count_positions_visited_by_guard(input: &mut dyn BufRead) -> usize {
-  let mut guard = Guard::new(parse_map(read_input(input)));
+  let mut guard = Guard::new(CartesianGrid::from(read_input(input)));
   while !guard.left_mapped_area() {
     guard.make_move()
   }
@@ -11,7 +11,7 @@ pub fn count_positions_visited_by_guard(input: &mut dyn BufRead) -> usize {
 }
 
 pub fn count_possible_loop_obstructions(input: &mut dyn BufRead) -> usize {
-  let source_map = parse_map(read_input(input));
+  let source_map = CartesianGrid::from(read_input(input));
   let candidates = source_map.coords().iter()
     .filter(|c| *source_map.get(c) == '.')
     .map(|c| *c)
@@ -31,15 +31,6 @@ pub fn count_possible_loop_obstructions(input: &mut dyn BufRead) -> usize {
     }
   }
   count
-}
-
-fn parse_map(lines: Vec<String>) -> CartesianGrid<char> {
-  let grid = lines
-    .iter()
-    .map(|line| line.chars().into_iter().collect())
-    .collect::<Vec<Vec<char>>>();
-
-  CartesianGrid {grid}
 }
 
 struct Guard {

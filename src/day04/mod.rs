@@ -7,8 +7,8 @@ use crate::{read_input, CartesianGrid};
 pub fn count_xmas_word(input: &mut dyn BufRead) -> usize {
   let word = "XMAS".chars().collect_vec();
 
-  let board = parse_board(read_input(input));
-  board.grid
+  let board = CartesianGrid::from(read_input(input));
+  board
     .coords()
     .iter()
     .map(|c| board.count_word(c, &word))
@@ -18,8 +18,8 @@ pub fn count_xmas_word(input: &mut dyn BufRead) -> usize {
 pub fn count_x_mas(input: &mut dyn BufRead) -> usize {
   let word = "MAS".chars().collect_vec();
 
-  let board = parse_board(read_input(input));
-  board.grid
+  let board = CartesianGrid::from(read_input(input));
+  board
     .coords()
     .iter()
     .map(|c| board.find_word_on_diagonals(c, &word))
@@ -35,24 +35,9 @@ pub fn count_x_mas(input: &mut dyn BufRead) -> usize {
     .count()
 }
 
-fn parse_board(input: Vec<String>) -> Board {
-  Board {
-    grid: CartesianGrid {
-      grid: input
-        .iter()
-        .map(|line| line.chars().into_iter().collect())
-        .collect(),
-    }
-  }
-}
-
-struct Board {
-  grid: CartesianGrid<char>
-}
-
-impl Board {
+impl CartesianGrid<char> {
   fn count_word(&self, start: &(usize, usize), word: &Vec<char>) -> usize {
-    if *self.grid.get(start) != *word.get(0).unwrap() {
+    if *self.get(start) != *word.get(0).unwrap() {
       return 0;
     } else {
       self
@@ -68,7 +53,7 @@ impl Board {
     start: &(usize, usize),
     word: &Vec<char>,
   ) -> Vec<Vec<(usize, usize)>> {
-    if *self.grid.get(start) != *word.get(0).unwrap() {
+    if *self.get(start) != *word.get(0).unwrap() {
       return vec![];
     } else {
       self
@@ -90,7 +75,7 @@ impl Board {
       coords
         .iter()
         .enumerate()
-        .all(|(i, c)| self.grid.get(c) == word.get(i).unwrap())
+        .all(|(i, c)| self.get(c) == word.get(i).unwrap())
     } else {
       false
     }
@@ -102,7 +87,7 @@ impl Board {
     direction: &(i8, i8),
     distance: usize,
   ) -> Option<Vec<(usize, usize)>> {
-    if self.grid.in_grid(&(
+    if self.in_grid(&(
       start.0 as isize + direction.0 as isize * (distance - 1) as isize,
       start.1 as isize + direction.1 as isize * (distance - 1) as isize,
     )) {

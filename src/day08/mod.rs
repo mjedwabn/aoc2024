@@ -5,22 +5,13 @@ use itertools::Itertools;
 use crate::{read_input, CartesianGrid, Coords};
 
 pub fn count_unique_antinode_locations(input: &mut dyn BufRead) -> usize {
-  let map = parse_map(read_input(input));
+  let map = CartesianGrid::from(read_input(input));
   map.count_unique_antinode_locations(|| (1..=1))
 }
 
 pub fn count_unique_harmonic_antinode_locations(input: &mut dyn BufRead) -> usize {
-  let map = parse_map(read_input(input));
+  let map = CartesianGrid::from(read_input(input));
   map.count_unique_antinode_locations(|| (0..))
-}
-
-fn parse_map(lines: Vec<String>) -> CartesianGrid<char> {
-  let grid = lines
-    .iter()
-    .map(|line| line.chars().into_iter().collect())
-    .collect::<Vec<Vec<char>>>();
-
-  CartesianGrid { grid }
 }
 
 trait Map {

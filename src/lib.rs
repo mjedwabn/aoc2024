@@ -21,11 +21,11 @@ pub fn read(file_name: &str) -> BufReader<File> {
 }
 
 #[derive(Clone)]
-struct CartesianGrid<T> {
+pub struct CartesianGrid<T> {
   grid: Vec<Vec<T>>,
 }
 
-type Coords = (usize, usize);
+pub type Coords = (usize, usize);
 
 impl<T: std::fmt::Display + std::cmp::PartialEq> CartesianGrid<T> {
   fn coords(&self) -> Vec<Coords> {
@@ -68,5 +68,16 @@ impl<T: std::fmt::Display + std::cmp::PartialEq> CartesianGrid<T> {
       }
       println!();
     }
+  }
+}
+
+impl CartesianGrid<char> {
+  pub fn from(lines: Vec<String>) -> Self {
+    let grid = lines
+      .iter()
+      .map(|line| line.chars().into_iter().collect())
+      .collect::<Vec<Vec<char>>>();
+  
+    CartesianGrid { grid }
   }
 }
