@@ -4,7 +4,7 @@ use crate::{read_input, CartesianGrid, Coords};
 
 pub fn count_positions_visited_by_guard(input: &mut dyn BufRead) -> usize {
   let mut guard = Guard::new(CartesianGrid::from(read_input(input)));
-  while !guard.left_mapped_area() {
+  while !guard.has_left_mapped_area() {
     guard.make_move()
   }
   guard.count_visited_positions()
@@ -22,11 +22,11 @@ pub fn count_possible_loop_obstructions(input: &mut dyn BufRead) -> usize {
     let mut candidate_map = source_map.clone();
     candidate_map.set(&candidate, '#');
     let mut guard = Guard::new(candidate_map);
-    while !guard.left_mapped_area() && !guard.entered_into_loop() {
+    while !guard.has_left_mapped_area() && !guard.has_entered_into_loop() {
       guard.make_move()
     }
 
-    if guard.entered_into_loop() {
+    if guard.has_entered_into_loop() {
       count += 1
     }
   }
@@ -54,7 +54,7 @@ impl Guard {
     }
   }
 
-  fn left_mapped_area(&self) -> bool {
+  fn has_left_mapped_area(&self) -> bool {
     self.grid.is_boundary(&self.position)
   }
 
@@ -102,7 +102,7 @@ impl Guard {
     )
   }
 
-  fn entered_into_loop(&self) -> bool {
+  fn has_entered_into_loop(&self) -> bool {
     *self.visited_positions.get(&self.position)
       .and_then(|x| x.get(&self.direction))
       .unwrap_or(&0) >= 2
