@@ -1,4 +1,6 @@
-use std::{collections::HashSet, io::BufRead};
+use std::io::BufRead;
+
+use itertools::Itertools;
 
 use crate::{CartesianGrid, Coords, read_input};
 
@@ -29,31 +31,14 @@ impl CartesianGrid<i32> {
   }
 
   fn sum_trailheads_scores(&self) -> usize {
-    let mut to_visit: Vec<Coords> = Vec::new();
-    let mut paths: HashSet<(Coords, Coords)> = HashSet::new();
-
-    for h in self.find_trailheads() {
-      to_visit.push(h);
-
-      while let Some(c) = to_visit.pop() {
-        for n in self
-          .get_neighbours(c)
-          .iter()
-          .filter(|n| *self.get(n) == self.get(&c) + 1)
-        {
-          to_visit.push(*n);
-
-          if *self.get(n) == 9 {
-            paths.insert((h, *n));
-          }
-        }
-      }
-    }
-
-    paths.len()
+    self.find_hiking_paths().iter().unique().count()
   }
 
   fn sum_trailheads_ratings(&self) -> usize {
+    self.find_hiking_paths().len()
+  }
+
+  fn find_hiking_paths(&self) -> Vec<(Coords, Coords)> {
     let mut to_visit: Vec<Coords> = Vec::new();
     let mut paths: Vec<(Coords, Coords)> = Vec::new();
 
@@ -75,7 +60,7 @@ impl CartesianGrid<i32> {
       }
     }
 
-    paths.len()
+    paths
   }
 
   fn find_trailheads(&self) -> Vec<Coords> {
