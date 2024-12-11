@@ -1,53 +1,10 @@
-use std::{
-  collections::{HashMap, HashSet},
-  io::BufRead,
-};
+use std::{collections::HashSet, io::BufRead};
 
 use crate::{CartesianGrid, Coords, read_input};
 
-pub fn sum_trailheads_scores(input: &mut dyn BufRead) -> u32 {
-  let map = Map {
-    grid: CartesianGrid::parse(read_input(input)),
-  };
+pub fn sum_trailheads_scores(input: &mut dyn BufRead) -> usize {
+  let map = CartesianGrid::parse(read_input(input));
   map.sum_trailheads_scores()
-}
-
-struct Map {
-  grid: CartesianGrid<i32>,
-}
-
-impl Map {
-  fn sum_trailheads_scores(&self) -> u32 {
-    let mut graph: HashMap<Coords, HashSet<Coords>> = HashMap::new();
-    let mut to_visit: Vec<Coords> = Vec::new();
-    let mut paths: HashSet<(Coords, Coords)> = HashSet::new();
-
-    for h in self.grid.find_trailheads() {
-      to_visit.push(h);
-
-      while let Some(c) = to_visit.pop() {
-        if !graph.contains_key(&c) {
-          graph.insert(c, HashSet::new());
-        }
-
-        for n in self
-          .grid
-          .get_neighbours(c)
-          .iter()
-          .filter(|n| *self.grid.get(n) == self.grid.get(&c) + 1)
-        {
-          graph.get_mut(&c).unwrap().insert(*n);
-          to_visit.push(*n);
-
-          if *self.grid.get(n) == 9 {
-            paths.insert((h, *n));
-          }
-        }
-      }
-    }
-
-    paths.len() as u32
-  }
 }
 
 impl CartesianGrid<i32> {
@@ -64,6 +21,31 @@ impl CartesianGrid<i32> {
         })
         .collect::<Vec<Vec<i32>>>(),
     }
+  }
+
+  fn sum_trailheads_scores(&self) -> usize {
+    let mut to_visit: Vec<Coords> = Vec::new();
+    let mut paths: HashSet<(Coords, Coords)> = HashSet::new();
+
+    for h in self.find_trailheads() {
+      to_visit.push(h);
+
+      while let Some(c) = to_visit.pop() {
+        for n in self
+          .get_neighbours(c)
+          .iter()
+          .filter(|n| *self.get(n) == self.get(&c) + 1)
+        {
+          to_visit.push(*n);
+
+          if *self.get(n) == 9 {
+            paths.insert((h, *n));
+          }
+        }
+      }
+    }
+
+    paths.len()
   }
 
   fn find_trailheads(&self) -> Vec<Coords> {
