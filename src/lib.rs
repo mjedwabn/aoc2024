@@ -11,6 +11,7 @@ pub mod day08;
 pub mod day09;
 pub mod day10;
 pub mod day11;
+pub mod day12;
 
 pub fn read_input(input: &mut dyn BufRead) -> Vec<String> {
   input
@@ -29,6 +30,7 @@ pub struct CartesianGrid<T> {
 }
 
 pub type Coords = (usize, usize);
+pub type ICoords = (isize, isize);
 
 impl<T: std::fmt::Display + std::cmp::PartialEq> CartesianGrid<T> {
   fn coords(&self) -> Vec<Coords> {
