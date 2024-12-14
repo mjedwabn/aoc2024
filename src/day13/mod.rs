@@ -3,40 +3,52 @@ use std::io::BufRead;
 use crate::read_input;
 
 pub fn find_minimum_tokens_to_win_possible_prizes(input: &mut dyn BufRead) -> usize {
-  let machines = parse_claw_machines(read_input(input));
-
-  machines
+  parse_claw_machines(read_input(input))
     .iter()
     .flat_map(|machine| find_minimum_tokens(machine))
+    .sum()
+}
+
+pub fn find_minimum_tokens_to_win_possible_higher_prizes(input: &mut dyn BufRead) -> usize {
+  fn higher_prize(machine: &ClawMachine) -> ClawMachine {
+    ClawMachine {
+      button_a: machine.button_a,
+      button_b: machine.button_b,
+      prize: (10000000000000 + machine.prize.0, 10000000000000 + machine.prize.1)
+    }
+  }
+
+  parse_claw_machines(read_input(input)).iter().map(|m| higher_prize(m))
+    .flat_map(|machine| find_minimum_tokens(&machine))
     .sum()
 }
 
 fn find_minimum_tokens(machine: &ClawMachine) -> Option<usize> {
   let (a, b) = solve_linear_equations(
     (
-      machine.button_a.0 as f32,
-      machine.button_b.0 as f32,
-      machine.prize.0 as f32,
+      machine.button_a.0 as f64,
+      machine.button_b.0 as f64,
+      machine.prize.0 as f64,
     ),
     (
-      machine.button_a.1 as f32,
-      machine.button_b.1 as f32,
-      machine.prize.1 as f32,
+      machine.button_a.1 as f64,
+      machine.button_b.1 as f64,
+      machine.prize.1 as f64,
     ),
   );
 
-  if a >= 0f32 && (a as usize) as f32 == a && b >= 0f32 && (b as usize) as f32 == b {
+  if a >= 0f64 && (a as usize) as f64 == a && b >= 0f64 && (b as usize) as f64 == b {
     Some(a as usize * 3 + b as usize)
   } else {
     None
   }
 }
 
-fn solve_linear_equations(equation_1: (f32, f32, f32), equation_2: (f32, f32, f32)) -> (f32, f32) {
+fn solve_linear_equations(equation_1: (f64, f64, f64), equation_2: (f64, f64, f64)) -> (f64, f64) {
   solve_linear_quations_using_cramers_formula(equation_1, equation_2)
 }
 
-fn solve_linear_quations_using_cramers_formula(equation_1: (f32, f32, f32), equation_2: (f32, f32, f32)) -> (f32, f32) {
+fn solve_linear_quations_using_cramers_formula(equation_1: (f64, f64, f64), equation_2: (f64, f64, f64)) -> (f64, f64) {
   let (a, b, e) = equation_1;
   let (c, d, f) = equation_2;
 
@@ -81,7 +93,7 @@ struct ClawMachine {
 
 #[cfg(test)]
 mod tests {
-  use crate::{day13::find_minimum_tokens_to_win_possible_prizes, read};
+  use crate::{day13::{find_minimum_tokens_to_win_possible_higher_prizes, find_minimum_tokens_to_win_possible_prizes}, read};
 
   #[test]
   fn sample_part1_input() {
@@ -96,6 +108,22 @@ mod tests {
     assert_eq!(
       find_minimum_tokens_to_win_possible_prizes(&mut read("./src/day13/my.input")),
       29438
+    )
+  }
+
+  #[test]
+  fn sample_part2_input() {
+    assert_eq!(
+      find_minimum_tokens_to_win_possible_higher_prizes(&mut read("./src/day13/sample.input")),
+      875318608908
+    )
+  }
+
+  #[test]
+  fn my_part2_input() {
+    assert_eq!(
+      find_minimum_tokens_to_win_possible_higher_prizes(&mut read("./src/day13/my.input")),
+      104958599303720
     )
   }
 }
