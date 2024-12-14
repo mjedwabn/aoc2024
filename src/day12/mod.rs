@@ -9,9 +9,21 @@ pub fn total_price(input: &mut dyn BufRead) -> usize {
   garden.total_price()
 }
 
+pub fn total_discount_price(input: &mut dyn BufRead) -> usize {
+  let garden = CartesianGrid::from(read_input(input));
+  garden.total_discount_price()
+}
+
 trait Garden {
   fn total_price(&self) -> usize;
+  fn total_discount_price(&self) -> usize;
+  fn area(&self, region: &Vec<Coords>) -> usize;
   fn plot_perimeter(&self, coords: &Coords) -> PlotPerimeter;
+  fn number_of_sides(&self, region: &Vec<Coords>) -> usize;
+  fn requires_left_fence(&self, plot: &Coords) -> bool;
+  fn requires_right_fence(&self, plot: &Coords) -> bool;
+  fn requires_top_fence(&self, plot: &Coords) -> bool;
+  fn requires_bottom_fence(&self, plot: &Coords) -> bool;
   fn get_adjacent_plots(&self, plot: &Coords) -> Vec<Coords>;
   fn detect_regions(&self) -> Vec<Vec<Coords>>;
 }
@@ -31,6 +43,75 @@ impl Garden for CartesianGrid<char> {
       })
       .map(|plots| plots.len() * plots.iter().map(|(_, perimeter)| perimeter).sum::<usize>())
       .sum()
+  }
+
+  fn total_discount_price(&self) -> usize {
+    self
+      .detect_regions()
+      .iter()
+      .map(|region| self.area(region) * self.number_of_sides(region))
+      .sum()
+  }
+
+  fn area(&self, region: &Vec<Coords>) -> usize {
+      region.len()
+  }
+
+  fn number_of_sides(&self, region: &Vec<Coords>) -> usize {
+    let left_fences = region
+      .iter()
+      .filter(|p| self.requires_left_fence(p))
+      .into_group_map_by(|p| p.0)
+      .into_iter()
+      .map(|g| g.1.iter().map(|c| c.1).sorted().collect_vec().windows(2).filter(|w| w[1] > w[0] + 1).count() + 1)
+      .sum::<usize>();
+    let right_fences = region
+      .iter()
+      .filter(|p| self.requires_right_fence(p))
+      .into_group_map_by(|p| p.0)
+      .into_iter()
+      .map(|g| g.1.iter().map(|c| c.1).sorted().collect_vec().windows(2).filter(|w| w[1] > w[0] + 1).count() + 1)
+      .sum::<usize>();
+    let top_fences = region
+      .iter()
+      .filter(|p| self.requires_top_fence(p))
+      .into_group_map_by(|p| p.1)
+      .into_iter()
+      .map(|g| g.1.iter().map(|c| c.0).sorted().collect_vec().windows(2).filter(|w| w[1] > w[0] + 1).count() + 1)
+      .sum::<usize>();
+    let bottom_fences = region
+      .iter()
+      .filter(|p| self.requires_bottom_fence(p))
+      .into_group_map_by(|p| p.1)
+      .into_iter()
+      .map(|g| g.1.iter().map(|c| c.0).sorted().collect_vec().windows(2).filter(|w| w[1] > w[0] + 1).count() + 1)
+      .sum::<usize>();
+
+    left_fences + right_fences + top_fences + bottom_fences
+  }
+
+  fn requires_left_fence(&self, plot: &Coords) -> bool {
+    let plot_type = self.get(plot);
+    let c = (plot.0 as isize - 1, plot.1 as isize);
+    !self.in_grid(&c) || self.get(&(c.0 as usize, c.1 as usize)) != plot_type
+  }
+
+  fn requires_right_fence(&self, plot: &Coords) -> bool {
+    let plot_type = self.get(plot);
+    let c = (plot.0 as isize + 1, plot.1 as isize);
+    !self.in_grid(&c) || self.get(&(c.0 as usize, c.1 as usize)) != plot_type
+  }
+
+  fn requires_top_fence(&self, plot: &Coords) -> bool {
+    let plot_type = self.get(plot);
+    let c = (plot.0 as isize, plot.1 as isize - 1);
+    !self.in_grid(&c) || self.get(&(c.0 as usize, c.1 as usize)) != plot_type
+  }
+
+  fn requires_bottom_fence(&self, plot: &Coords) -> bool {
+    let plot_type = self.get(plot);
+    let c = (plot.0 as isize, plot.1 as isize + 1);
+    !self.in_grid(&c) || self.get(&(c.0 as usize, c.1 as usize)) != plot_type
   }
 
   fn detect_regions(&self) -> Vec<Vec<Coords>> {
@@ -112,7 +193,7 @@ impl CartesianGrid<char> {
 
 #[cfg(test)]
 mod tests {
-  use crate::{day12::total_price, read};
+  use crate::{day12::{total_discount_price, total_price}, read};
 
   #[test]
   fn sample1_part1_input() {
@@ -132,5 +213,35 @@ mod tests {
   #[test]
   fn my_part1_input() {
     assert_eq!(total_price(&mut read("./src/day12/my.input")), 1449902)
+  }
+
+  #[test]
+  fn sample1_part2_input() {
+    assert_eq!(total_discount_price(&mut read("./src/day12/sample1.input")), 80)
+  }
+
+  #[test]
+  fn sample2_part2_input() {
+    assert_eq!(total_discount_price(&mut read("./src/day12/sample2.input")), 436)
+  }
+
+  #[test]
+  fn sample4_part2_input() {
+    assert_eq!(total_discount_price(&mut read("./src/day12/sample4.part2.input")), 236)
+  }
+
+  #[test]
+  fn sample5_part2_input() {
+    assert_eq!(total_discount_price(&mut read("./src/day12/sample5.part2.input")), 368)
+  }
+
+  #[test]
+  fn sample3_part2_input() {
+    assert_eq!(total_discount_price(&mut read("./src/day12/sample3.input")), 1206)
+  }
+
+  #[test]
+  fn my_part2_input() {
+    assert_eq!(total_discount_price(&mut read("./src/day12/my.input")), 908042)
   }
 }
