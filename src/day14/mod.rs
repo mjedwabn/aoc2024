@@ -1,6 +1,8 @@
 use std::io::BufRead;
 
-use crate::{read_input, Coords, ICoords};
+use itertools::Itertools;
+
+use crate::{read_input, CartesianGrid, Coords, ICoords};
 
 pub fn safety_factor(input: &mut dyn BufRead, period: usize, size: (usize, usize)) -> usize {
   let robots: Vec<Robot> = parse_robots(read_input(input));
@@ -13,6 +15,49 @@ pub fn safety_factor(input: &mut dyn BufRead, period: usize, size: (usize, usize
   let quadrants = count_robots_in_quadrants(positions, size);
 
   quadrants.0 * quadrants.1 * quadrants.2 * quadrants.3
+}
+
+pub fn find_easter_egg(input: &mut dyn BufRead, period: usize, size: (usize, usize)) -> usize {
+  let robots: Vec<Robot> = parse_robots(read_input(input));
+  let simulator = Simulator {
+    robots,
+    size
+  };
+
+  for t in 0..period {
+    let positions = simulator.predict_positions_after(t);
+    let mut grid = CartesianGrid::empty(size);
+
+
+    for (p, n) in positions
+      .iter()
+      .into_group_map_by(|p| *p)
+      .into_iter()
+      .map(|x| (x.0, x.1.len())) 
+    {
+      grid.set(p, char::from_digit(n as u32, 10).unwrap());
+    }
+
+    println!("t = {} ========================================================================= ", t);
+    grid.print_positions();
+  }
+  
+  0
+}
+
+impl CartesianGrid<char> {
+  pub fn empty(size: (usize, usize)) -> Self {
+    CartesianGrid { grid: (0..size.1).map(|_| vec![' '; size.0]).collect() }
+  }
+
+  fn print_positions(&self) {
+    for level in self.grid.iter() {
+      for c in level {
+        print!("{}", c);
+      }
+      println!();
+    }
+  }
 }
 
 fn count_robots_in_quadrants(positions: Vec<Coords>, size: (usize, usize)) -> (usize, usize, usize, usize) {
@@ -70,7 +115,7 @@ fn parse_robots(lines: Vec<String>) -> Vec<Robot> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{day14::safety_factor, read};
+    use crate::{day14::{find_easter_egg, safety_factor}, read};
 
   #[test]
   fn sample_part1_input() {
@@ -80,5 +125,11 @@ mod tests {
   #[test]
   fn my_part1_input() {
     assert_eq!(safety_factor(&mut read("./src/day14/my.input"), 100, (101, 103)), 223020000)
+  }
+
+  #[test]
+  fn my_part2_input() {
+    find_easter_egg(&mut read("./src/day14/my.input"), 7500, (101, 103));
+    // 7338
   }
 }
