@@ -2,7 +2,7 @@ use std::io::BufRead;
 
 use itertools::Itertools;
 
-use crate::{read_input, CartesianGrid, Coords};
+use crate::{read_input, CartesianGrid, Coords, GridCoords};
 
 pub fn count_unique_antinode_locations(input: &mut dyn BufRead) -> usize {
   let map = CartesianGrid::from(read_input(input));
@@ -22,6 +22,7 @@ trait Map {
 
 impl Map for CartesianGrid<char> {
   fn count_unique_antinode_locations<R>(&self, harmonics: fn() -> R) -> usize where R: IntoIterator<Item = u32> {
+    println!("kek1");
     self.coords().iter().filter(|c| *self.get(c) != '.')
       .into_group_map_by(|c| self.get(c))
       .into_iter()
@@ -38,20 +39,19 @@ impl Map for CartesianGrid<char> {
   }
 
   fn detect_antinodes<R>(&self, antenna1: &Coords, antenna2: &Coords, harmonics: fn() -> R) -> Vec<Coords> where R: IntoIterator<Item = u32> {
-    let dx = antenna1.0 as isize - antenna2.0 as isize;
-    let dy = antenna1.1 as isize - antenna2.1 as isize;
-
+    let d = antenna1 - antenna2;
     let antenna1_antinodes = harmonics().into_iter()
       .map(|i| i as isize)
-      .map(|i| (antenna1.0 as isize + dx * i, antenna1.1 as isize + dy * i))
-      .take_while(|c| self.in_grid(c));
+      .map(|i| antenna1 + d * i)
+      .take_while(|c| c.in_grid(self))
+      .flat_map(|c| c.to_coords());
     let antenna2_antinodes = harmonics().into_iter()
       .map(|i| i as isize)
-      .map(|i| (antenna2.0 as isize - dx * i, antenna2.1 as isize - dy * i))
-      .take_while(|c| self.in_grid(c));
+      .map(|i| antenna2 - d * i)
+      .take_while(|c| c.in_grid(self))
+      .flat_map(|c| c.to_coords());
 
     antenna1_antinodes.chain(antenna2_antinodes)
-      .map(|c| (c.0 as usize, c.1 as usize))
       .collect_vec()
   }
 }

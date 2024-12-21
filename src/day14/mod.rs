@@ -80,10 +80,7 @@ impl Simulator {
   }
 
   fn predict_position_after(&self, robot: &Robot, period: usize) -> Coords {
-    (
-      ((robot.position.0 as isize + robot.velocity.0 * period as isize).rem_euclid(self.size.0 as isize)) as usize,
-      ((robot.position.1 as isize + robot.velocity.1 * period as isize).rem_euclid(self.size.1 as isize)) as usize
-    )
+    (robot.position + robot.velocity * period).rem_euclid(self.size.0, self.size.1)
   }
 }
 
@@ -99,11 +96,11 @@ fn parse_robots(lines: Vec<String>) -> Vec<Robot> {
     let captures = re.captures(line).unwrap();
 
     Robot {
-      position: (
+      position: Coords::new(
         captures.name("px").unwrap().as_str().parse::<usize>().unwrap(),
         captures.name("py").unwrap().as_str().parse::<usize>().unwrap()
       ),
-      velocity: (
+      velocity: ICoords::new(
         captures.name("vx").unwrap().as_str().parse::<isize>().unwrap(),
         captures.name("vy").unwrap().as_str().parse::<isize>().unwrap()
       )

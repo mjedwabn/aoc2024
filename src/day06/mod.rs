@@ -1,6 +1,6 @@
 use std::{collections::HashMap, io::BufRead};
 
-use crate::{read_input, CartesianGrid, Coords};
+use crate::{read_input, CartesianGrid, Coords, ICoords};
 
 pub fn count_positions_visited_by_guard(input: &mut dyn BufRead) -> usize {
   let mut guard = Guard::new(CartesianGrid::from(read_input(input)));
@@ -11,14 +11,17 @@ pub fn count_positions_visited_by_guard(input: &mut dyn BufRead) -> usize {
 }
 
 pub fn count_possible_loop_obstructions(input: &mut dyn BufRead) -> usize {
+  println!("w000");
   let source_map = CartesianGrid::from(read_input(input));
+  println!("wf0");
   let candidates = source_map.coords().iter()
     .filter(|c| *source_map.get(c) == '.')
     .map(|c| *c)
     .collect::<Vec<Coords>>();
+  println!("wf1");
   let mut count = 0;
   for candidate in candidates {
-    //println!("candidate {:?}", candidate);
+    println!("candidate {:?}", candidate);
     let mut candidate_map = source_map.clone();
     candidate_map.set(&candidate, '#');
     let mut guard = Guard::new(candidate_map);
@@ -40,12 +43,12 @@ struct Guard {
   visited_positions: HashMap<Coords, HashMap<Direction, usize>>
 }
 
-type Direction = (isize, isize);
+type Direction = ICoords;
 
 impl Guard {
   fn new(grid: CartesianGrid<char>) -> Guard {
     let starting_position = grid.find_one_coords('^').unwrap();
-    let starting_direction = (0, -1);
+    let starting_direction = ICoords(0, -1);
     Guard {
       grid,
       position: starting_position,
@@ -68,18 +71,15 @@ impl Guard {
   }
 
   fn move_is_possible(&self) -> bool {
-    return *self.grid.get(&self.get_move_projection()) != '#'
+    self.get_move_projection().filter(|p| *self.grid.get(p) != '#').is_some()
   }
 
-  fn get_move_projection(&self) -> Coords {
-    return (
-      (self.position.0 as isize + self.direction.0) as usize,
-      (self.position.1 as isize + self.direction.1) as usize
-    )
+  fn get_move_projection(&self) -> Option<Coords> {
+    (self.position + self.direction).to_coords()
   }
 
   fn move_forward(&mut self) {
-    self.position = self.get_move_projection();
+    self.position = self.get_move_projection().unwrap();
 
     self.mark_position_visited()
   }
@@ -96,7 +96,7 @@ impl Guard {
   }
 
   fn turn_right(&mut self) {
-    self.direction = (
+    self.direction = ICoords(
       -self.direction.1,
       self.direction.0
     )

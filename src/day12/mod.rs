@@ -92,26 +92,26 @@ impl Garden for CartesianGrid<char> {
 
   fn requires_left_fence(&self, plot: &Coords) -> bool {
     let plot_type = self.get(plot);
-    let c = (plot.0 as isize - 1, plot.1 as isize);
-    !self.in_grid(&c) || self.get(&(c.0 as usize, c.1 as usize)) != plot_type
+    let c = plot.sub_x(1);
+    !self.in_grid(&c) || self.get(&c.to_coords().unwrap()) != plot_type
   }
 
   fn requires_right_fence(&self, plot: &Coords) -> bool {
     let plot_type = self.get(plot);
-    let c = (plot.0 as isize + 1, plot.1 as isize);
-    !self.in_grid(&c) || self.get(&(c.0 as usize, c.1 as usize)) != plot_type
+    let c = plot.add_x(1);
+    !self.in_grid(&c) || self.get(&c.to_coords().unwrap()) != plot_type
   }
 
   fn requires_top_fence(&self, plot: &Coords) -> bool {
     let plot_type = self.get(plot);
-    let c = (plot.0 as isize, plot.1 as isize - 1);
-    !self.in_grid(&c) || self.get(&(c.0 as usize, c.1 as usize)) != plot_type
+    let c = plot.sub_y(1);
+    !self.in_grid(&c) || self.get(&c.to_coords().unwrap()) != plot_type
   }
 
   fn requires_bottom_fence(&self, plot: &Coords) -> bool {
     let plot_type = self.get(plot);
-    let c = (plot.0 as isize, plot.1 as isize + 1);
-    !self.in_grid(&c) || self.get(&(c.0 as usize, c.1 as usize)) != plot_type
+    let c = plot.add_y(1);
+    !self.in_grid(&c) || self.get(&c.to_coords().unwrap()) != plot_type
   }
 
   fn detect_regions(&self) -> Vec<Vec<Coords>> {
@@ -160,7 +160,7 @@ impl Garden for CartesianGrid<char> {
     let perimeter = self
       .get_adjacent_coords(*coords)
       .iter()
-      .filter(|c| !self.in_grid(c) || self.get(&(c.0 as usize, c.1 as usize)) != plot_type)
+      .filter(|c| !self.in_grid(c) || self.get(&c.to_coords().unwrap()) != plot_type)
       .count();
 
     (*plot_type, perimeter)
@@ -170,23 +170,23 @@ impl Garden for CartesianGrid<char> {
 impl CartesianGrid<char> {
   fn get_adjacent_coords(&self, coords: Coords) -> Vec<ICoords> {
     vec![
-      (coords.0 as isize, coords.1 as isize + 1),
-      (coords.0 as isize + 1, coords.1 as isize),
-      (coords.0 as isize, coords.1 as isize - 1),
-      (coords.0 as isize - 1, coords.1 as isize),
+      coords.add_y(1),
+      coords.add_x(1),
+      coords.sub_y(1),
+      coords.sub_x(1),
     ]
   }
 
   fn get_adjacent_coords_in_bounds(&self, coords: Coords) -> Vec<Coords> {
     vec![
-      (coords.0 as isize, coords.1 as isize + 1),
-      (coords.0 as isize + 1, coords.1 as isize),
-      (coords.0 as isize, coords.1 as isize - 1),
-      (coords.0 as isize - 1, coords.1 as isize),
+      coords.add_y(1),
+      coords.add_x(1),
+      coords.sub_y(1),
+      coords.sub_x(1),
     ]
     .iter()
     .filter(|c| self.in_grid(c))
-    .map(|c| (c.0 as usize, c.1 as usize))
+    .map(|c| c.to_coords().unwrap())
     .collect_vec()
   }
 }

@@ -2,7 +2,7 @@ use std::io::BufRead;
 
 use itertools::Itertools;
 
-use crate::{read_input, CartesianGrid};
+use crate::{read_input, CartesianGrid, Coords, GridCoords, ICoords};
 
 pub fn count_xmas_word(input: &mut dyn BufRead) -> usize {
   let word = "XMAS".chars().collect_vec();
@@ -27,7 +27,7 @@ pub fn count_x_mas(input: &mut dyn BufRead) -> usize {
       words
         .iter()
         .map(|w| *w.get(1).unwrap())
-        .collect::<Vec<(usize, usize)>>()
+        .collect::<Vec<Coords>>()
     })
     .into_group_map_by(|&n| n)
     .into_iter()
@@ -36,7 +36,7 @@ pub fn count_x_mas(input: &mut dyn BufRead) -> usize {
 }
 
 impl CartesianGrid<char> {
-  fn count_word(&self, start: &(usize, usize), word: &Vec<char>) -> usize {
+  fn count_word(&self, start: &Coords, word: &Vec<char>) -> usize {
     if *self.get(start) != *word.get(0).unwrap() {
       return 0;
     } else {
@@ -50,9 +50,9 @@ impl CartesianGrid<char> {
 
   fn find_word_on_diagonals(
     &self,
-    start: &(usize, usize),
+    start: &Coords,
     word: &Vec<char>,
-  ) -> Vec<Vec<(usize, usize)>> {
+  ) -> Vec<Vec<Coords>> {
     if *self.get(start) != *word.get(0).unwrap() {
       return vec![];
     } else {
@@ -67,8 +67,8 @@ impl CartesianGrid<char> {
 
   fn word_exists_in_direction(
     &self,
-    start: &(usize, usize),
-    direction: &(i8, i8),
+    start: &Coords,
+    direction: &ICoords,
     word: &Vec<char>,
   ) -> bool {
     if let Some(coords) = self.get_word_coords(start, direction, word.len()) {
@@ -83,14 +83,11 @@ impl CartesianGrid<char> {
 
   fn get_word_coords(
     &self,
-    start: &(usize, usize),
-    direction: &(i8, i8),
+    start: &Coords,
+    direction: &ICoords,
     distance: usize,
-  ) -> Option<Vec<(usize, usize)>> {
-    if self.in_grid(&(
-      start.0 as isize + direction.0 as isize * (distance - 1) as isize,
-      start.1 as isize + direction.1 as isize * (distance - 1) as isize,
-    )) {
+  ) -> Option<Vec<Coords>> {
+    if (start + direction * (distance as i32 - 1)).in_grid(self) {
       Some(
         self.make_word_coords(start, direction, distance)
       )
@@ -101,35 +98,30 @@ impl CartesianGrid<char> {
 
   fn make_word_coords(
     &self,
-    start: &(usize, usize),
-    direction: &(i8, i8),
+    start: &Coords,
+    direction: &ICoords,
     distance: usize,
-  ) -> Vec<(usize, usize)> {
+  ) -> Vec<Coords> {
     (0..distance)
-      .map(|d| {
-        (
-          (start.0 as isize + direction.0 as isize * d as isize) as usize,
-          (start.1 as isize + direction.1 as isize * d as isize) as usize,
-        )
-      })
-      .collect::<Vec<(usize, usize)>>()
+      .flat_map(|d| (start + direction * d as i32).to_coords())
+      .collect::<Vec<Coords>>()
   }
 
-  fn get_versors(&self) -> Vec<(i8, i8)> {
+  fn get_versors(&self) -> Vec<ICoords> {
     return vec![
-      (0, 1),
-      (1, 1),
-      (1, 0),
-      (1, -1),
-      (0, -1),
-      (-1, -1),
-      (-1, 0),
-      (-1, 1),
+      ICoords(0, 1),
+      ICoords(1, 1),
+      ICoords(1, 0),
+      ICoords(1, -1),
+      ICoords(0, -1),
+      ICoords(-1, -1),
+      ICoords(-1, 0),
+      ICoords(-1, 1),
     ];
   }
 
-  fn get_diagonal_versors(&self) -> Vec<(i8, i8)> {
-    return vec![(1, 1), (1, -1), (-1, -1), (-1, 1)];
+  fn get_diagonal_versors(&self) -> Vec<ICoords> {
+    return vec![ICoords(1, 1), ICoords(1, -1), ICoords(-1, -1), ICoords(-1, 1)];
   }
 }
 

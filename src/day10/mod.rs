@@ -74,14 +74,14 @@ impl CartesianGrid<i32> {
 
   fn get_neighbours(&self, c: Coords) -> Vec<Coords> {
     vec![
-      (c.0 as isize, c.1 as isize + 1),
-      (c.0 as isize + 1, c.1 as isize),
-      (c.0 as isize, c.1 as isize - 1),
-      (c.0 as isize - 1, c.1 as isize),
+      c.add_y(1),
+      c.add_x(1),
+      c.sub_y(1),
+      c.sub_x(1),
     ]
     .iter()
     .filter(|x| self.in_grid(x))
-    .map(|x| (x.0 as usize, x.1 as usize))
+    .map(|x| x.to_coords().unwrap())
     .collect()
   }
 }
