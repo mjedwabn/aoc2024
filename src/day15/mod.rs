@@ -358,7 +358,7 @@ mod tests {
   fn my_part2_input() {
     assert_eq!(
       sum_scaled_up_boxes_gps_coordinates(&mut read("./src/day15/my.input")),
-      9021
+      1467145
     )
   }
 }
