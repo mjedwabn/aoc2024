@@ -4,6 +4,8 @@ use std::{
   ops::{self},
 };
 
+use itertools::Itertools;
+
 pub mod day01;
 pub mod day02;
 pub mod day03;
@@ -136,6 +138,17 @@ impl ops::Add<ICoords> for Coords {
   }
 }
 
+impl ops::Add<&ICoords> for Coords {
+  type Output = ICoords;
+
+  fn add(self, rhs: &ICoords) -> Self::Output {
+    ICoords {
+      0: self.0 as isize + rhs.0,
+      1: self.1 as isize + rhs.1,
+    }
+  }
+}
+
 impl ops::Add<&ICoords> for &Coords {
   type Output = ICoords;
 
@@ -259,6 +272,34 @@ impl<T: std::fmt::Display + std::cmp::PartialEq> CartesianGrid<T> {
 
   fn set(&mut self, coord: &Coords, value: T) {
     self.grid.get_mut(coord.1).unwrap()[coord.0] = value
+  }
+
+  fn get_coords_between(&self, from: &Coords, to: &Coords) -> Vec<Coords> {
+    let dx = from.0 as isize - to.0 as isize;
+    let dy = from.1 as isize - to.1 as isize;
+
+    // from = .
+
+    if dx == 0 {
+      if dy < 0 {
+        (from.1..to.1).map(|y| Coords(from.1, y)).collect_vec()
+      }
+      else {
+        (to.1 + 1..=from.1).map(|y| Coords(from.1, y)).rev().collect_vec()
+      }
+    }
+    else if dy == 0 {
+      if dx < 0 {
+        (from.0..to.0).map(|x| Coords(x, from.1)).collect_vec()  
+      }
+      else {
+        (to.0 + 1..=from.0).map(|x| Coords(x, from.1)).rev().collect_vec()
+      }
+    }
+    else {
+      // TODO: diagonals
+      vec![]
+    }
   }
 
   #[allow(dead_code)]
