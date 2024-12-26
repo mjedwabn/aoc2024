@@ -21,6 +21,7 @@ pub mod day12;
 pub mod day13;
 pub mod day14;
 pub mod day15;
+pub mod day16;
 
 pub fn read_input(input: &mut dyn BufRead) -> Vec<String> {
   input
@@ -277,8 +278,6 @@ impl<T: std::fmt::Display + std::cmp::PartialEq> CartesianGrid<T> {
   fn get_coords_between(&self, from: &Coords, to: &Coords) -> Vec<Coords> {
     let dx = from.0 as isize - to.0 as isize;
     let dy = from.1 as isize - to.1 as isize;
-
-    // from = .
 
     if dx == 0 {
       if dy < 0 {
