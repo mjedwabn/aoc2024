@@ -84,9 +84,9 @@ fn visit_maze(maze: CartesianGrid<char>) -> (Coords, HashMap<(Coords, ICoords), 
       .filter(|n| !visited.contains(n)) 
     {
       let alt = curr.cost + maze.cost(&curr.position, &curr.direction, &next);
-      let old = dist.insert((next, next_dir), alt);
+      let old = dist.get(&(next, next_dir));
 
-      if old.is_none() || alt < old.unwrap() {
+      if old.is_none() || alt < *old.unwrap() {
         prev.insert((next, next_dir), HashSet::new());
       }
 
