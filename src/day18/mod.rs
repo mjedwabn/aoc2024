@@ -16,6 +16,23 @@ pub fn minimum_number_of_steps_needed_to_reach_the_exit(input: &mut dyn BufRead,
   find_shortest_path_length(&space, start, end).unwrap()
 }
 
+pub fn find_first_byte_that_will_prevent_the_exit(input: &mut dyn BufRead, size: (usize, usize)) -> String {
+  let bytes = parse_input(read_input(input));
+  
+  for n in 1..=bytes.len() {
+    let mut space = CartesianGrid::empty(size);
+    for b in bytes.iter().take(n) {
+      space.set(&b, '#');
+    }
+
+    if find_shortest_path_length(&space, Coords(0, 0), Coords(size.0 - 1, size.1 - 1)).is_none() {
+      return bytes.get(n - 1).map(|c| format!("{},{}", c.0, c.1)).unwrap();
+    }
+  }
+  
+  panic!("No byte will prevent the exit");
+}
+
 fn find_shortest_path_length(space: &CartesianGrid<char>, start: Coords, end: Coords) -> Option<usize> {
   let mut visited: HashSet<Coords> = HashSet::new();
   let mut dist: HashMap<Coords, usize> = HashMap::new();
@@ -97,7 +114,7 @@ impl Ord for State {
 
 #[cfg(test)]
 mod tests {
-  use crate::{day18::minimum_number_of_steps_needed_to_reach_the_exit, read};
+  use crate::{day18::{find_first_byte_that_will_prevent_the_exit, minimum_number_of_steps_needed_to_reach_the_exit}, read};
 
   #[test]
   fn sample_part1_input() {
@@ -107,5 +124,15 @@ mod tests {
   #[test]
   fn my_part1_input() {
     assert_eq!(minimum_number_of_steps_needed_to_reach_the_exit(&mut read("./src/day18/my.input"), (71, 71), 1024), 374)
+  }
+
+  #[test]
+  fn sample_part2_input() {
+    assert_eq!(find_first_byte_that_will_prevent_the_exit(&mut read("./src/day18/sample.input"), (7, 7)), "6,1")
+  }
+
+  #[test]
+  fn my_part2_input() {
+    assert_eq!(find_first_byte_that_will_prevent_the_exit(&mut read("./src/day18/my.input"), (71, 71)), "30,12")
   }
 }
