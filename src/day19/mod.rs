@@ -13,7 +13,7 @@ fn is_design_possible(design: &String, patterns: &HashSet<String>) -> bool {
   queue.insert(0);
 
   while let Some(position) = queue.pop_first() {
-    let candidates: Vec<&String> = patterns.iter().filter(|p| design[position..].starts_with(*p)).collect();
+    let candidates = patterns.iter().filter(|p| design[position..].starts_with(*p));
     
     for candidate in candidates {
       let next_position = position + candidate.len();
