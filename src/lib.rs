@@ -187,6 +187,17 @@ impl ops::Sub<ICoords> for &Coords {
   }
 }
 
+impl ops::Sub<Coords> for Coords {
+  type Output = ICoords;
+
+  fn sub(self, rhs: Coords) -> Self::Output {
+    Self::Output {
+      0: self.0 as isize - rhs.0 as isize,
+      1: self.1 as isize - rhs.1 as isize,
+    }
+  }
+}
+
 impl ops::Sub<&Coords> for &Coords {
   type Output = ICoords;
 
@@ -251,6 +262,10 @@ impl<T: std::fmt::Display + std::cmp::PartialEq> CartesianGrid<T> {
 
   fn get(&self, coord: &Coords) -> &T {
     self.grid.get(coord.1).unwrap().get(coord.0).unwrap()
+  }
+
+  fn geti(&self, coord: &ICoords) -> Option<&T> {
+    coord.to_coords().filter(|c| c.in_grid(self)).map(|c| self.get(&c))
   }
 
   fn in_grid(&self, coord: &ICoords) -> bool {
