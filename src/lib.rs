@@ -264,10 +264,6 @@ impl<T: std::fmt::Display + std::cmp::PartialEq> CartesianGrid<T> {
     self.grid.get(coord.1).unwrap().get(coord.0).unwrap()
   }
 
-  fn geti(&self, coord: &ICoords) -> Option<&T> {
-    coord.to_coords().filter(|c| c.in_grid(self)).map(|c| self.get(&c))
-  }
-
   fn in_grid(&self, coord: &ICoords) -> bool {
     coord.1 >= 0
       && coord.1 < self.grid.len() as isize
